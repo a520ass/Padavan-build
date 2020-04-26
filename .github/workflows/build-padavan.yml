@@ -33,6 +33,11 @@ jobs:
     - name: Clone source code
       run: |
         git clone --depth=1 https://github.com/hanwckf/rt-n56u.git /opt/rt-n56u
+        # 打补丁 - 32M重启卡死bug start
+        cd /opt/rt-n56u
+        git apply https://github.com/chongshengB/rt-n56u/commit/418a2b19b8f3041fd434186da6f89e7ccec7cfb8.patch
+        git apply https://github.com/chongshengB/rt-n56u/commit/c9b3af242ac2dec418df0ebcce6c757536173d64.patch
+        # 打补丁 - 32M重启卡死bug end
         cd /opt/rt-n56u/toolchain-mipsel
         sh dl_toolchain.sh
         mkdir -p /opt/images/
