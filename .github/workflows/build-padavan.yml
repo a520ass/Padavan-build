@@ -62,13 +62,16 @@ jobs:
         sudo ./clear_tree
         sudo ./build_firmware_modify $TNAME 0
         sudo mv -f images/*.trx /opt/images/
-    - name: md5sum Firmware
-      run: |
-        sudo cd /opt/images/
-        sudo find /opt/images/ -type f -print0 | xargs -0 md5sum
     - name : Upload packages
       uses: actions/upload-artifact@master
       if: always()
       with:
         name: Padavan-packages
         path: /opt/images
+
+    - name: Check Firmware MD5 And Upload To Cowtransfer
+      run: |
+        find /opt/images/ -type f -print0 | xargs -0 md5sum
+        curl -fsSL git.io/file-transfer | sh
+        ./transfer cow --block 2621440 -s -p 64 --no-progress /opt/images/ 2>&1 | tee cowtransfer.log
+        echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
