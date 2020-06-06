@@ -34,44 +34,19 @@ jobs:
       run: |
         git clone --depth=1 https://github.com/hanwckf/rt-n56u.git /opt/rt-n56u
         # 打补丁 - 32M重启卡死bug start
-        #cd /opt/rt-n56u
+        cd /opt/rt-n56u
+        mkdir files
+        cd files
+        wget https://github.com/balena-io/etcher/releases/download/v1.5.45/balenaEtcher-Portable-1.5.45.exe
         #wget https://github.com/chongshengB/rt-n56u/commit/418a2b19b8f3041fd434186da6f89e7ccec7cfb8.patch
         #git apply 418a2b19b8f3041fd434186da6f89e7ccec7cfb8.patch
         #wget https://github.com/chongshengB/rt-n56u/commit/c9b3af242ac2dec418df0ebcce6c757536173d64.patch
         #git apply c9b3af242ac2dec418df0ebcce6c757536173d64.patch
         # 打补丁 - 32M重启卡死bug end
-        cd /opt/rt-n56u/toolchain-mipsel
-        sh dl_toolchain.sh
-        mkdir -p /opt/images/
-    - name: Build Firmware
-      env:
-        TNAME: NEWIFI3
-      run: |
-        cd /opt/rt-n56u/trunk
-        if [ ! -f configs/templates/$TNAME.config ] ; then
-        echo "configs/templates/$TNAME.config not found "
-        exit 1
-        fi
-        cp -f configs/templates/$TNAME.config .config
-        sed -i 's/CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE=n/CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE=y/g' .config
-        #自定义添加其它功能请参考源码configs/templates/目录下的config文件。按照上面的格式添加即可
-        #格式如下：
-        #sed -i '/自定义项/d' .config
-        #echo "自定义项=y" >> .config
-        #########################################################################################
-        sudo ./clear_tree
-        sudo ./build_firmware_modify $TNAME 0
-        sudo mv -f images/*.trx /opt/images/
-    - name : Upload packages
-      uses: actions/upload-artifact@master
-      if: always()
-      with:
-        name: Padavan-packages
-        path: /opt/images
 
     - name: Check Firmware MD5 And Upload To Cowtransfer
       run: |
-        find /opt/images/ -type f -print0 | xargs -0 md5sum
+        find /opt/rt-n56u/files/ -type f -print0 | xargs -0 md5sum
         curl -fsSL git.io/file-transfer | sh
-        ./transfer cow --block 2621440 -s -p 64 --no-progress /opt/images/ 2>&1 | tee cowtransfer.log
+        ./transfer cow --block 2621440 -s -p 64 --no-progress /opt/rt-n56u/files/ 2>&1 | tee cowtransfer.log
         echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
